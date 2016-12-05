@@ -16,10 +16,11 @@ dialog \
  --title "Connection worked" \
  --infobox "Connection stablished" \
   5 25
-else
+elif [ $? = -n1 ] ;
+then
   dialog --title "Error" --infobox "No internet connection" 5 25 ; sleep 3
+  fi
   exit 1
-fi
 
 keyboard=$(dialog --no-cancel --menu "Select Your Keyboard" 0 0 0 \
 bashkir "" "" bg_bds-cp1251 "" bg_bds-utf-8 "" bg_pho-cp1251 "" bg_pho-utf8 "" br-abnt "" br-abnt2 "" br-latin1-abnt2 "" \
