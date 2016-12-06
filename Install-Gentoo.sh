@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "------------------------------Gentoo Easy Install Script--------------------------------------------------"
-echo "---------------Please have patience and disable UEFI in bios-----------------------------"
+echo "---------------Please have patience and disable UEFI in bios----------------------------------------------" ;sleep 3
 #Criado por josemarcelo: contato:josemarcelo975@gmail.com {Brasil}
 #Script created only for amd64
 
@@ -10,14 +10,13 @@ dialog \
  --infobox "Testing connection,please wait" \
  5 25 ;sleep 3
 ping -c 3 www.gentoo.org
- if [ $? = 0 ] ; then
+if [ $? = 0 ] ; then
 dialog \
  --title "Connection worked" \
  --infobox "Connection stablished" \
-  5 25
-elif [ $? = -n1 ] ; then
-dialog --title "Error" --infobox "No internet connection" 5 25 ; sleep 3
-exit 1
+  10 35 ;sleep 3
+else dialog --title "Error" --infobox "No internet connection" 5 25 ; sleep 3
+exit
 fi
 
 keyboard=$(dialog --no-cancel --menu "Select Your Keyboard" 0 0 0 \
