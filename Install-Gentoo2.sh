@@ -95,8 +95,8 @@ fi
 echo "$zone/$subzone" > /etc/timezone
 emerge --config sys-libs/timezone-data
 locales=$(dialog --title "Locales" --menu "Select the default language for your system" 20 35 15 \
-'"aa_DJ.UTF-8 UTF-8"' "" '"af_ZA.UTF-8 UTF-8"' "" '"an_ES.UTF-8 UTF-8"' "" '"ar_AE.UTF-8 UTF-8'"" "" '"ar_BH.UTF-8 UTF-8"' "" '"ar_DZ.UTF-8 UTF-8"' "" '"ar_EG.UTF-8 UTF-8"' "" '"be_BY.UTF-8 UTF-8"' "" '"bg_BG.UTF-8 UTF-8"' "" '"bs_BA.UTF-8 UTF-8"' "" '"ca_ES.UTF-8 UTF-8"' "" '"da_DK.UTF-8 UTF-8"' "" '"de_DE.UTF-8 UTF-8"' "" '"el_GR.UTF-8 UTF-8"' "" '"en_US.UTF-8 UTF-8 "" '"fr_BE.UTF-8 UTF-8"'' "" \
-fr_FR "" gd_GB "" hu_HU "" ja_JP "" ka_GE "" lg_UG "" mg_MG "" nn_NO "" oc_FR "" pl_PL "" pt_BR "" pt_PT "" ro_RO "" ru_RU "" sk_SK "" \
+'"aa_DJ.UTF-8 UTF-8"' "" '"af_ZA.UTF-8 UTF-8"' "" '"an_ES.UTF-8 UTF-8"' "" '"ar_AE.UTF-8 UTF-8'"" "" '"ar_BH.UTF-8 UTF-8"' "" '"ar_DZ.UTF-8 UTF-8"' "" '"ar_EG.UTF-8 UTF-8"' "" '"be_BY.UTF-8 UTF-8"' "" '"bg_BG.UTF-8 UTF-8"' "" '"bs_BA.UTF-8 UTF-8"' "" '"ca_ES.UTF-8 UTF-8"' "" '"da_DK.UTF-8 UTF-8"' "" '"de_DE.UTF-8 UTF-8"' "" '"el_GR.UTF-8 UTF-8"' "" '"en_US.UTF-8 UTF-8"' "" '"fr_BE.UTF-8 UTF-8"' "" \
+'"fr_FR"' "" '"gd_GB"' "" '"hu_HU"' "" '"ja_JP"' "" '"ka_GE"' "" '"lg_UG"' "" '"mg_MG"' "" '"nn_NO"' "" '"oc_FR"' "" '"pl_PL"' "" '"pt_BR"' "" '"pt_PT"' "" '"ro_RO"' "" '"ru_RU"' "" '"sk_SK"' "" \
 '"tg_TJ.UTF-8 UTF-8"' "" '"tr_TR.UTF-8 UTF-8"' "" '"uk_UA.UTF-8 UTF-8"' "" '"wa_BE.UTF-8 UTF-8"' "" '"yi_US.UTF-8 UTF-8"' "" '"zh_CN.UTF-8 UTF-8"' "" --stdout)
 touch /etc/env.d/02locale
 echo LANG=$locales >> /etc/env.d/02locale
@@ -165,4 +165,3 @@ password=$(dialog --title "Password" \
  umount -l /mnt/gentoo/dev{/shm,/pts,}
  umount /mnt/gentoo{/boot,/sys,/proc,}
  dialog --msgbox "System Reboot" ;sleep 3
- reboot
