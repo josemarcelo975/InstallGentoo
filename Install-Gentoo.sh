@@ -41,31 +41,31 @@ dialog \
  --title "Create Partitions" \
  --msgbox "In the label type select two and create two primary partitions: ROOT and SWAP.mark ROOT as bootable and SWAP select 82 Linux swap / Solaris." \
   15 55
-  cfdisk
-  partitionroot=$(dialog --no-cancel --menu "What is Your ROOT partition?" 0 0 0 \
-  /dev/sda1 "" \
-  /dev/sda2 "" --stdout)
-  yes | mkfs.ext4 $partitionroot
-  partitionswap=$(dialog --no-cancel --menu "What is Your SWAP partition?" 0 0 0 \
-  /dev/sda1 "" \
-  /dev/sda2 "" --stdout)
-  mkswap $partitionswap && swapon $partitionswap
-  mount $partitionroot /mnt/gentoo
-  day=$(dialog \
-  --title "Date and Time" \
-  --inputbox "Set in the following order:Month,Day,Time,Year.And without commas and spaces." \
-  15 40 --stdout)
+cfdisk
+partitionroot=$(dialog --no-cancel --menu "What is Your ROOT partition?" 0 0 0 \
+/dev/sda1 "" \
+/dev/sda2 "" --stdout)
+yes | mkfs.ext4 $partitionroot
+partitionswap=$(dialog --no-cancel --menu "What is Your SWAP partition?" 0 0 0 \
+/dev/sda1 "" \
+/dev/sda2 "" --stdout)
+mkswap $partitionswap && swapon $partitionswap
+mount $partitionroot /mnt/gentoo
+day=$(dialog \
+ --title "Date and Time" \
+ --inputbox "Set in the following order:Month,Day,Time,Year.And without commas and spaces." \
+ 15 40 --stdout)
 date $day
 cd /mnt/gentoo
 dialog \
  --title "Stage3" \
  --infobox "Download stage3,please wait..." \
  5 40 ; sleep 3
- links https://www.gentoo.org/downloads/mirrrors/
+links https://www.gentoo.org/downloads/mirrrors/
 dialog \
-  --title "Please wait" \
-  --infobox "Unpacking stage3,this may take a while" \
-  5 45 ;sleep 3
+ --title "Please wait" \
+ --infobox "Unpacking stage3,this may take a while" \
+ 5 45 ;sleep 3
 tar xvjpf stage3-*.tar.bz2 --xattrs
 _cores=$(($(nproc) + 1))
 cat > /mnt/gentoo/etc/portage/make.conf << EOF
@@ -89,8 +89,8 @@ mount --rbind /sys /mnt/gentoo/sys
 mount --make-rslave /mnt/gentoo/sys
 mount --rbind /dev /mnt/gentoo/dev
 mount --make-rslave /mnt/gentoo/dev
-cp /usr/bin/dialog/mnt/gentoo/usr/bin
-cp /mnt/livecd/usr/bin/lib64/libdialog.so.13 /mnt/gentoo/usr/lib64/
+cp /usr/bin/dialog /mnt/gentoo/usr/bin
+cp /mnt/livecd/usr/lib64/libdialog.so.13 /mnt/gentoo/usr/lib64
 #Move second install script
 mv Install-Gentoo2.sh /mnt/gentoo
-chroot /mnt/gentoo /Install-Gentoo2.sh
+chroot /mnt/gentoo ./Install-Gentoo2.sh
