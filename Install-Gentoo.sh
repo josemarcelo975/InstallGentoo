@@ -70,12 +70,12 @@ tar xvjpf stage3-*.tar.bz2 --xattrs
 _cores=$(($(nproc) + 1))
 cat > /mnt/gentoo/etc/portage/make.conf << EOF
 CFLAGS="-march=native -02 -pipe"
-CXXFLAGS="${CFLAGS}"
-MAKEOPTS="$_cores"
+CXXFLAGS="\${CFLAGS}"
+MAKEOPTS="-j$_cores"
 CHOST="x86_64-pc-linux-gnu"
 PORTDIR="/usr/portage"
-DISTDIR="$[PORTDIR}/distfiles"
-PKGDIR="${PORTDIR}/packages"
+DISTDIR="\$[PORTDIR}/distfiles"
+PKGDIR="\${PORTDIR}/packages"
 USE="bindist python pulseaudio"
 ACCEPT_LICENSE="* -@EULA"
 CPU_FLAGS_X86="mmx sse sse2"
