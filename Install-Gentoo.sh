@@ -93,4 +93,4 @@ cp /usr/bin/dialog /mnt/gentoo/usr/bin
 cp /mnt/livecd/usr/lib64/libdialog.so.13 /mnt/gentoo/usr/lib64
 #Move second install script
 mv /root/InstallGentoo-master/Install-Gentoo2.sh /mnt/gentoo
-chroot /mnt/gentoo ./Install-Gentoo2.sh
+chroot /mnt/gentoo /bin/bash ./Install-Gentoo2.sh
