@@ -115,13 +115,13 @@ kernel=$(dialog --no-cancel --title "Kernel compilation" --menu "Choose the kern
 menuconfig "Advanced user only" \
 genkernel "For beginners" --stdout)
 if [ $kernel = menuconfig ] ;
-	then
+ then
 dialog --title "Compilation" --infobox "Compiling the modules,this can take a while" 10 35 ;sleep 3
 make menuconfig
 make && make modules_install
 make install
 elif [ $kernel = genkernel ] ;
-	then
+ then
 dialog --infobox "Installing genkernel,please wait" ;sleep 3
 emerge genkernel
 dialog --title "Compilation" --infobox "Wait while genkernel compiles the kernel for you" 10 35 ;sleep 3
@@ -129,7 +129,7 @@ genkernel all
 fi
 drivers=$(dialog --yesno "Would you like to install additional firmware(drivers)" 10 35 --sdout)
 if [ $drivers = 0 ] ;
-	then
+ then
 emerge linux-firmware
 fi
 host=$(dialog --title "Hostname" --inputbox "Please,enter your hostname" 10 35 --stdout)
@@ -138,30 +138,30 @@ dialog --infobox "Installing the package netifrc" 5 35 ;sleep 3
 emerge netifrc
 password=$(dialog --title "Password" \
  --passwordbox "Enter a password for the root user,you can not see the password" 15 45 --stdout)
- usermod -p $(openssl passwd -1 $password) root
- ETH0=$(ifconfig | head -1 | awk '{print $1}' | sed 's/://')
- cat > /etc/conf.d/net << EOF
- config_$ETH0="dhcp"
- EOF
- cd /etc/init.d
- ln -s net.lo net.$ETH0
- rc-update add net.$ETH0 default
- echo 'clock="local" ' > /etc/conf.d/hwclock
- dialog --infobox "Installing the system of log" 5 35 ;sleep 3
- emerge sysklogd
- rc-update add sysklogd default
- connect=$(dialog --yesno "use dhcp on your connection" 10 35 --stdout)
- if [ $connect = 0 ] ;
+usermod -p $(openssl passwd -1 $password) root
+ETH0=$(ifconfig | head -1 | awk '{print $1}' | sed 's/://')
+cat > /etc/conf.d/net << EOF
+config_$ETH0="dhcp"
+EOF
+cd /etc/init.d
+ln -s net.lo net.$ETH0
+rc-update add net.$ETH0 default
+echo 'clock="local" ' > /etc/conf.d/hwclock
+dialog --infobox "Installing the system of log" 5 35 ;sleep 3
+emerge sysklogd
+rc-update add sysklogd default
+connect=$(dialog --yesno "use dhcp on your connection" 10 35 --stdout)
+if [ $connect = 0 ] ;
  then
- emerge dhcpcd
- fi
- dialog --msgbox "Install grub as boot loader" 10 35 ;sleep 3
- emerge grub:2
- grub-install /dev/sda
- grub-mkconfig -o /boot/grub/grub.cfg
- exit
- rm -r /mnt/gentoo/usr/bin
- rm -r /mnt/gentoo/usr/lib64/
- umount -l /mnt/gentoo/dev{/shm,/pts,}
- umount /mnt/gentoo{/boot,/sys,/proc,}
- dialog --msgbox "System Reboot" ;sleep 3
+emerge dhcpcd
+fi
+dialog --msgbox "Install grub as boot loader" 10 35 ;sleep 3
+emerge grub:2
+grub-install /dev/sda
+grub-mkconfig -o /boot/grub/grub.cfg
+exit
+rm -r /mnt/gentoo/usr/bin
+rm -r /mnt/gentoo/usr/lib64/
+umount -l /mnt/gentoo/dev{/shm,/pts,}
+umount /mnt/gentoo{/boot,/sys,/proc,}
+dialog --msgbox "System Reboot" ;sleep 3
