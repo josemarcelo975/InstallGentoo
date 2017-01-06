@@ -186,13 +186,11 @@ locales=$(dialog --title "Locales" --menu "Select the default language for your 
 '"aa_DJ.UTF-8 UTF-8"' "" '"af_ZA.UTF-8 UTF-8"' "" '"an_ES.UTF-8 UTF-8"' "" '"ar_AE.UTF-8 UTF-8'"" "" '"ar_BH.UTF-8 UTF-8"' "" '"ar_DZ.UTF-8 UTF-8"' "" '"ar_EG.UTF-8 UTF-8"' "" '"be_BY.UTF-8 UTF-8"' "" '"bg_BG.UTF-8 UTF-8"' "" '"bs_BA.UTF-8 UTF-8"' "" '"ca_ES.UTF-8 UTF-8"' "" '"da_DK.UTF-8 UTF-8"' "" '"de_DE.UTF-8 UTF-8"' "" '"el_GR.UTF-8 UTF-8"' "" '"en_US.UTF-8 UTF-8"' "" '"fr_BE.UTF-8 UTF-8"' "" \
 '"fr_FR.UTF-8 UTF-8"' "" '"gd_GB.UTF-8 UTF-8"' "" '"hu_HU.UTF-8 UTF-8"' "" '"ja_JP.UTF-8 UTF-8"' "" '"ka_GE.UTF-8 UTF-8"' "" '"lg_UG.UTF-8 UTF-8"' "" '"mg_MG.UTF-8 UTF-8"' "" '"nn_NO.UTF-8 UTF-8"' "" '"oc_FR.UTF-8 UTF-8"' "" '"pl_PL.UTF-8 UTF-8"' "" '"pt_BR.UTF-8 UTF-8"' "" '"pt_PT.UTF-8 UTF-8"' "" '"ro_RO.UTF-8 UTF-8"' "" '"ru_RU.UTF-8 UTF-8"' "" '"sk_SK.UTF-8 UTF-8"' "" \
 '"tg_TJ.UTF-8 UTF-8"' "" '"tr_TR.UTF-8 UTF-8"' "" '"uk_UA.UTF-8 UTF-8"' "" '"wa_BE.UTF-8 UTF-8"' "" '"yi_US.UTF-8 UTF-8"' "" '"zh_CN.UTF-8 UTF-8"' "" --stdout)
-cat >> /mnt/gentoo/etc/locale.gen << EOF
+cat > /mnt/gentoo/etc/locale.gen << EOF
 $locales
 EOF
-locale-gen > /dev/null
-touch /etc/env.d/02locale
-echo LANG=$locales >> /mnt/gentoo/etc/env.d/02locale
-echo LC_COLLATE='"C"' >> /mnt/gentoo/etc/env.d/02locale
+$_CHROOT locale-gen > /dev/null
+
 cat > /mnt/gentoo/etc/fstab << EOF
 # <fs>          <mountpoint>    <type>     <opts>      <dump/pass>
 $partitionroot       /           ext4      noatime       0 1
