@@ -73,14 +73,14 @@ dialog \
 tar xvjpf stage3-*.tar.bz2 --xattrs
 rm stage3-*.tar.bz2
 cat > /mnt/gentoo/etc/portage/make.conf << EOF
-CFLAGS="-march=native -02 -pipe"
+CFLAGS="-02 -pipe"
 CXXFLAGS="\${CFLAGS}"
 MAKEOPTS="-j$_CORES"
 CHOST="x86_64-pc-linux-gnu"
 PORTDIR="/usr/portage"
 DISTDIR="\${PORTDIR}/distfiles"
 PKGDIR="\${PORTDIR}/packages"
-USE="bindist python pulseaudio"
+USE="bindist"
 ACCEPT_LICENSE="* -@EULA"
 CPU_FLAGS_X86="mmx sse sse2"
 EOF
@@ -189,7 +189,6 @@ locales=$(dialog --title "Locales" --menu "Select the default language for your 
 cat > /mnt/gentoo/etc/locale.gen << EOF
 $locales
 EOF
-locale-gen > /dev/null
 cat > /mnt/gentoo/etc/fstab << EOF
 # <fs>          <mountpoint>    <type>     <opts>      <dump/pass>
 $partitionroot       /           ext4      noatime       0 1
