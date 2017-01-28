@@ -1,0 +1,268 @@
+#!/bin/bash
+
+echo "------------------------------Gentoo Facil--------------------------------------------------"
+echo "---------------Porfavor tenha paciencia o UEFI na bios----------------------------------------------" ;sleep 3
+#Criado por josemarcelo: contato:josemarcelo975@gmail.com {Brasil}
+#Script criado apenas para a arquitetura amd64(64bits)
+dialog \
+ --title "Teste" \
+ --infobox "Testando a conexao,Porfavor aguarde" \
+ 5 25 ;sleep 3
+ping -c 3 www.gentoo.org > /dev/null
+if [ $? = 0 ] ; then
+dialog \
+ --title "Teste de conexao passou" \
+ --infobox "Conexao estabelecida" \
+  10 35 ;sleep 3
+else dialog --title "Erro" --infobox "Sem conexao com a internet" 5 25 ; sleep 3
+exit
+fi
+keyboard=$(dialog --no-cancel --menu "Selecione seu teclado" 20 35 15 \
+bashkir "" bg_bds-cp1251 "" bg_bds-utf-8 "" bg_pho-cp1251 "" bg_pho-utf8 "" br-abnt "" br-abnt2 "" br-latin1-abnt2 "" \
+br-latin1-us "" by-cp1251 "" by "" bywin-cp1251 "" cf "" cz-cp1250 "" cz-lat2-prog "" cz-lat2 "" cz-qwerty "" \
+defkeymap "" defkeymap_V1.0 "" dk-latin1 "" dk "" emacs "" emacs2 "" es-cp850 "" es "" et-nodeadkeys "" \
+et "" gr-pc "" gr "" hu101 "" il-heb "" il-phonetic "" il "" is-latin1-us "" it-ibm "" it "" it2 "" \
+jp106 "" kazakh "" ky_alt_sh-UTF-8 "" kyrgyz "" la-latin1 "" lt.baltic "" lt.l4 "" lt "" lv-tilde "" lv "" \
+mk-cp1251 "" mk-utf "" mk "" mk0 "" nl2 "" no-latin1 "" no "" pc110 "" pl "" pl1 "" pl2 "" pl3 "" pl4 "" \
+pt-latin-1 "" pt-latin9 "" ro "" ro_win "" ru-cp1251 "" ru-ms "" ru-yawerty "" ru "" ru1 "" ru2 "" \
+ru3 "" ru4 "" ru_win "" ruwin_alt-CP1251 "" ruwin_alt-KOI8-R "" ruwin_alt-UTF-8 "" ruwin_alt_sh-UTF-8 "" ruwin_cplk-CP1251 "" \
+ruwin_cplk-KOI8-R "" ruwin_cplk-UTF-8 "" ruwin_ct_sh-CP1251 "" ruwin_ct_sh-KOI8-R "" ruwin_ct_sh-UTF-8 "" ruwin_ctrl-CP1251 "" \
+ruwin_ctrl-KOI8-R "" ruwin_ctrl-UTF-8 "" se-ir209 "" se-lat6 "" sk-prog-qwerty "" sk-qwerty "" \
+sr-cy "" sv-cy "" sv-latin1 "" tj_alt-UTF8 "" tr_q-latin5 "" tralt "" trf "" trq "" ttwin_alt-UTF-8 "" \
+ttwin_cplk-UTF-8 "" ttwin_ct_sh-UTF-8 "" ttwin_ctrl-UTF-8 "" ua-cp1251 "" ua-utf-ws "" ua-utf "" ua-ws "" ua "" \
+uk "" us-acentos "" --stdout)
+loadkeys $keyboard
+
+hd=$(dialog --nocancel --menu "HD em qual sera instalado o sistema" 10 40 15 \
+`lsblk | grep "disk" | awk '{print "/dev/" $1 ORS"\b"}'` --stdout)
+dialog \
+ --title "Criar as particoes" \
+ --msgbox "No tipo de rotulo,selecione dos e crie duas particoes:ROOT e SWAP.\n\nmarque a ROOT como inicializavel e SWAP selecione 82 Linux swap/Solaris" \
+  15 55
+cfdisk $hd
+partitionroot=$(dialog --no-cancel --menu "Qual e sua particao ROOT?" 0 0 0 \
+`lsblk | grep "part" | awk '{print substr($1 ORS"\b",3)}'` --stdout)
+yes | mkfs.ext4 /dev/$partitionroot >/dev/null
+partitionswap=$(dialog --no-cancel --menu "Qual e sua particao SWAP?" 0 0 0 \
+`lsblk | grep "part" | awk '{print substr($1 ORS"\b",3)}'` --stdout)
+mkswap /dev/$partitionswap > /dev/null
+swapon /dev/$partitionswap > /dev/null
+mount /dev/$partitionroot /mnt/gentoo
+day=$(dialog \
+ --title "Data e Hora" \
+ --inputbox "Digite na seguinte ordem:Mes,Dia,Hora,Ano.E sem espacos." \
+ 15 40 --stdout)
+date $day > /dev/null
+DIST_MIRROR="http://mirror.bytemark.co.uk/gentoo/"
+_LATEST_STAGE3=$(curl -s $DIST_MIRROR/releases/amd64/autobuilds/latest-stage3-amd64.txt | tail -1 | awk '{print $1}')
+_STAGE3_URI="$DIST_MIRROR/releases/amd64/autobuilds/$_LATEST_STAGE3"
+_CORES=$(($(nproc) + 1))
+_CHROOT="chroot /mnt/gentoo"
+mkdir -p /mnt/gentoo
+cd /mnt/gentoo
+dialog \
+ --title "Stage3" \
+ --infobox "Baixando o stage3,Por favor aguarde..." \
+ 5 40 ;sleep 3
+wget $_STAGE3_URI
+dialog \
+ --title "Porfavor aguarde" \
+ --infobox "Descompactando o stage3,Isso pode levar tempo" \
+ 5 45 ;sleep 3
+tar xvjpf stage3-*.tar.bz2 --xattrs
+rm stage3-*.tar.bz2
+cat > /mnt/gentoo/etc/portage/make.conf << EOF
+CFLAGS="-02 -pipe"
+CXXFLAGS="\${CFLAGS}"
+MAKEOPTS="-j$_CORES"
+CHOST="x86_64-pc-linux-gnu"
+PORTDIR="/usr/portage"
+DISTDIR="\${PORTDIR}/distfiles"
+PKGDIR="\${PORTDIR}/packages"
+USE="bindist"
+ACCEPT_LICENSE="* -@EULA"
+CPU_FLAGS_X86="mmx sse sse2"
+LINGUAS="pt_BR"
+L10N="pt-BR"
+EOF
+cp -L /etc/resolv.conf /mnt/gentoo/etc
+mount -t proc proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+
+dialog \
+ --title "Por favor aguarde..." \
+ --infobox "Instalando um instantaneo do portage" \
+  5 40 ; sleep 3
+$_CHROOT emerge-webrsync
+Profile=$(dialog \
+--menu "Selecione um perfil para seu sistema,define as flags para seu sistema e outras configuracoes" 25 40 25 \
+1 "Padrao do Gentoo" \
+2 "Padrao selinux" \
+3 "Desktop:Xfce,Mate,Lxde..." \
+4 "Desktop Gnome Shell 3" \
+5 "Desktop Gnome Shell 3 Systemd" \
+6 "Desktop Kde" \
+7 "Desktop Kde Plasma Systemd" \
+8 "Desktop Kde Plasma 5" \
+9 "Desktop Kde Plasma 5 Systemd" --stdout)
+eselect profile set $Profile
+
+zone=$(dialog --no-cancel --title "World zones" --menu "Para definir o relogio do sistema,escolha a World Zone de seu local." 20 35 15 \
+Africa "" America "" Antarctica "" Arctic "" Asia "" Atlantic "" Australia "" Brazil "" Canada "" Europe "" Indian "" Mexico "" Pacific "" US "" --stdout)
+if [ $zone = Africa ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades da Africa" --menu "Now select your nearest city from this list." 20 35 15 \
+Abidjan "" Accra "" Addis_Ababa "" Algiers "" Asmara "" Asmera "" Bamako "" Bangui "" Banjul "" Bissau "" Blantyre "" Brazzaville "" \
+Bujumbura "" Cairo "" Casablanca "" Ceuta "" Conakry "" Dakar "" Dar_es_Salaam "" Djibouti "" Douala "" El_Aaiun "" Freetown "" Gaborone "" Harare "" Johannesburg "" Juba "" Kampala "" Khartoum "" Kigali "" \
+Kinshasa "" Lagos "" Libreville "" Lome "" Luanda "" Lubumbashi "" Lusaka "" Malabo "" Maputo "" Maseru "" Mbabane "" Mogadishu "" Monrovia "" Nairobi "" Ndjamena "" Niamey "" Nouakchott "" Ouagadougou "" Porto-Novo "" \
+Sao_Tome "" Timbuktu "" Tripoli "" Tunis "" Windhoek "" --stdout)
+elif [ $zone = America ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades da America" --menu "Now select your nearest city from this list." 20 35 15 \
+Adak "" Anchorage "" Anguilla "" Antigua "" Araguaina "" Aruba "" Asunction "" Atikokan "" Atka "" Bahia "" Bahia_Banderas "" Barbaros "" Belem "" Belize "" Blanc-Sablon "" Boa_Vista "" Bogota "" Boise "" Buenos_Aires "" Cambridge_Bay "" Campo_Grande "" Cancum "" Caracas "" Catamarca "" \
+Cayenne "" Cayman "" Chicago "" Chihuahua "" Coral_Harbour "" Cordoba "" Costa_Rica "" Creston "" Cuiaba "" Curacao "" Danmarkshavn "" Dawson "" Dawson_Creek "" Denver "" Detroit "" Dominica "" Edmonton "" Eirunepe "" El_Salvador "" Ensenada "" Fort_Nelson "" Fort_Wayne "" Fortaleza "" Glace_Bay "" Godthab "" Goose_Bay "" \
+Grand_Turk "" Grenada "" Guadeloupe "" Guatemala "" Guayaquil "" Guyana "" Halifax "" Havana "" Hermosillo "" Indianapolis "" Inuvik "" Iqaluit "" Jamaica "" Jujuy "" Juneau "" Knox_IN "" Kralendijk "" La_Paz "" Lima "" \
+Los_Angeles "" Louisville "" Lower_Princes "" Maceio "" Managua "" Manaus "" Marigot "" Martinique "" Matamoros "" Mazatlan "" Mendoza "" Menominee "" Merida "" Metlakatla "" Mexico_City "" Miquelon "" Moncton "" Monterrey "" Montevideo "" Montreal "" Montserrat "" Nassau "" New_York "" Nipigon "" Nome "" Noronha "" Ojinaga "" Panama "" \
+Pangnirtung "" Paramaribo "" Phoenix "" Port-au-Prince "" Port_of_spain "" Porto_Acre "" Porto_Velho "" Puerto_Rico "" Rainy_River "" Rankin_Inlet "" Recife "" Regina "" Resolute "" Rio_Branco "" Rosario "" Santa_Isabel "" Santarem "" Santiago "" Santo_Domingo "" Sao_Paulo "" Scoresbysund "" Shiprock "" Sitka "" St_Barthelemy "" St_Johns "" \
+St_Kitts "" St_Lucia "" St_Thomas "" St_Vincent "" Swift_Current "" Tegucigalpa "" Thule "" Thunder_Bay "" Tijuana "" Toronto "" Tortola "" Vancouver "" Virgin "" Whitehorse "" Winnipeg "" Yakutat "" Yellowknife "" --stdout)
+elif [ $zone = Antarctica ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades da Antarctica" --menu "Now select your nearest city from this list." 20 35 15 \
+Casey "" Davis "" DumontDUrville "" Macquarie "" Mawson "" McMurdo "" Palmer "" Rothera "" South_Pole "" Troll "" Vostok "" --stdout)
+elif [ $zone = Arctic ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades do Arctic" --menu "Now select your nearest city from this list." 20 35 15 \
+Longyearbyen "" --stdout)
+elif [ $zone = Asia ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades da Asia" --menu "Now select your nearest city from this list." 20 35 15 \
+Aden "" Almaty "" Amman "" Anadyr "" Aqtau "" Aqtobe "" Ashgabat "" Ashkhabad "" Baghdad "" Bahrain "" Baku "" Bangkok "" Barnaul "" Beirut "" Bishkek "" Brunei "" Calcutta "" Chita "" Choibalsan "" Chongqing "" Chungking "" Colombo "" Dacca "" Damascus "" Dhaka "" Dili "" Dubai "" Dushanbe "" Gaza "" Harbin "" Hebron "" Ho_Chi_Minh "" Hong_Kong "" Hovd "" Irkutsk "" Istanbul "" Jakarta "" \
+Jayapura "" Jerusalem "" Kabul "" Kamchatka "" Karachi "" Kashgar "" Kathmandu "" Katmandu "" Khandyga "" Kolkata "" Krasnoyarsk "" Kuala_Lumpur "" Kuching "" Kuwait "" Macao "" Macau "" Magadan "" Makassar "" Manila "" Muscat "" Nicosia "" Novokuznetsk "" Novosibirsk "" Omsk "" Oral "" Phnom_Pehn "" Pontianak "" Pyongyang "" Qatar "" Qyzylorda "" Rangoon "" Riyadh "" Saigon "" Sakhalin "" \
+Samarkand "" Seoul "" Shanghai "" Singapore "" Srednekolymsk "" Taipei "" Tashkent "" Tbilisi "" Tehran "" Tel_Aviv "" Thimbu "" Thimphu "" Tokyo "" Tomsk "" Ujung_Pandang "" Ulaanbaatar "" Ulan_Bator "" Urumqi "" Ust-Nera "" Vientiane "" Vladivostok "" Yakutsk "" Yangon "" Yekaterinburg "" Yerevan "" --stdout)
+elif [ $zone = Atlantic ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades do Atlantic" --menu "Now select your nearest city from this list." 20 35 15 \
+Azores "" Bermuda "" Canary "" Cape_Verde "" Faeroe "" Faroe "" Jan_Mayen "" Madeira "" Reykjavik "" South_Georgia "" St_Helena "" Stanley "" --stdout)
+elif [ $zone = Australia ] ;
+	then
+subzone=$(dialog --title "Cidades da Australia" --menu "Now select your nearest city from this list." 20 35 15 \
+ACT "" Adelaide "" Brisbane "" Broken_Hill "" Canberra "" Currie "" Darwin "" Eucla "" Hobart "" LHI "" Linderman "" Lord_Howe "" Melbourne "" NSW "" North "" Perth "" Queensland "" South "" Sydney "" Tasmania "" Victoria "" West "" Yancowinna "" --stdout)
+elif [ $zone = Brazil ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades do Brazil" --menu "Now select your nearest city from this list." 20 35 15 \
+Acre "" DeNoronha "" East "" West "" --stdout)
+elif [ $zone = Canada ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades do Canada" --menu "Now select your nearest city from this list." 20 35 15 \
+Atlantic "" Central "" East-Sashkatchewan "" Eastern "" Mountain "" Newfoundland "" Pacific "" Saskatchewan "" Yukon "" --stdout)
+elif [ $zone = Europe ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades da Europe" --menu "Now select your nearest city from this list." 20 35 15 \
+Amsterdam "" Andorra "" Astrakhan "" Athens "" Belfast "" Belgrade "" Berlim "" Bratislava "" Brussels "" Bucharest "" Budapest "" Busingen "" Chisinau "" Copenhagen "" Dublin "" Gibraltar "" Guernsey "" Helsinki "" Isle_of_Man "" Istanbul "" Jersey "" Kaliningrad "" Kiev "" Kirov "" Lisbon "" Ljubljana "" London "" Luxembourg "" Madrid "" Malta "" Mariehamn "" Minsk "" Monaco "" Moscow "" Nicosia "" Oslo "" Paris "" \
+Podgorica "" Prague "" Riga "" Rome "" Samara "" San_Marino "" Sarajevo "" Simferopol "" Skopje "" Sofia "" Stockholm "" Tallinn "" Tirane "" Tiraspol "" Ulyanovsk "" Uzhgorod "" Vaduz "" Vatican "" Vienna "" Vilnius "" Volgograd "" Warsaw "" Zagreb "" Zaporozhye "" Zurich "" --stdout)
+elif [ $zone = Indian ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades da Indian" --menu "Now select your nearest city from this list." 20 35 15 \
+Antananarivo "" Chagos "" Christmas "" Cocos "" Comoro "" Kerguelen "" Mahe "" Maldives "" Mauritius "" Mayotte "" Reunion "" --stdout)
+elif [ $zone = Mexico ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades do Mexico" --menu "Now select your nearest city from this list." 20 35 15 \
+BajaNorte "" BajaSur "" General "" --stdout)
+elif [ $zone = Pacific ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades do Pacific" --menu "Now select your nearest city from this list." 20 35 15 \
+Apia "" Auckland "" Bougainville "" Chatham "" Chuuk "" Easter "" Efate "" Enderbury "" Fakaofo "" Fiji "" Funafuti "" Galapagos "" Gambier "" Guadalcanal "" Guam "" Honolulu "" Johnston "" Kiritimati "" Kosrae "" Kwajalein "" Majuro "" Marquesas "" Midway "" Nauru "" Niue "" Norfolk "" Noumea "" Pago_Pago "" Palau "" Pitcairn "" Pohnpei "" Ponape "" Port_Moresby "" Rarotonga "" Saipan "" Samoa "" Tahiti "" Tarawa "" \
+Tongatapu "" Truk "" Wake "" Wallis "" Yap "" --stdout)
+elif [ $zone = US ] ;
+	then
+subzone=$(dialog --no-cancel --title "Cidades do US" --menu "Now select your nearest city from this list." 20 35 15 \
+Alaska "" Aleutian "" Arizona "" Central "" East-Indiana "" Eastern "" Hawaii "" Indiana-Starke "" Michigan "" Mountain "" Pacific "" Pacific-New "" Samoa "" --stdout)
+fi
+echo "$zone/$subzone" > /mnt/gentoo/etc/timezone
+cat > /mnt/gentoo/etc/locale.gen << EOF
+pt_BR.UTF-8 UTF-8
+EOF
+
+EOF
+cat > /mnt/gentoo/etc/fstab << EOF
+# <fs>          <mountpoint>    <type>     <opts>      <dump/pass>
+$partitionroot       /           ext4      noatime       0 1
+$partitionswap       none        swap        sw          0 0
+EOF
+
+host=$(dialog --title "Hostname" --inputbox "Informe o seu hostname(nome do seu computador)" 10 35 --stdout)
+cat > /mnt/gentoo/etc/conf.d/hostname << EOF
+hostname="$host"
+EOF
+dialog --infobox "Instalando o pacote netifrc" 5 35 ;sleep 3
+$_CHROOT emerge netifrc
+ETH0=$(ifconfig | head -1 | awk '{print $1}' | sed 's/://')
+cat > /mnt/gentoo/etc/conf.d/net << EOF
+config_$ETH0="dhcp"
+EOF
+echo 'clock="local" ' > /etc/conf.d/hwclock
+$_CHROOT /bin/bash << EOF
+cd /etc/init.d
+ln -s net.lo net.$ETH0
+rc-update add net.$ETH0 default
+EOF
+password=$(dialog --title "Senha" \
+ --passwordbox "Digite a senha do usuario ROOT,Voce nao pode ver a senha" 15 45 --stdout)
+$_CHROOT usermod -p $(openssl passwd -1 $password) root
+$_CHROOT /bin/bash << EOF
+kernel=$(dialog --no-cancel --title "compilacao do Kernel" --menu "Escolha o tipo de compilacao do Kernel" 20 45 15 \
+menuconfig "Apenas para usuario avancado" \
+genkernel "Para iniciantes,Incompativel com a arquitetura x86(32bits)" --stdout)
+if [ $kernel = menuconfig ] ;
+ then
+dialog --title "Compilacao" --infobox "Compilando os modulos,isso pode levar muito tempo" 10 35 ;sleep 3
+make menuconfig
+make && make modules_install
+make install
+elif [ $kernel = genkernel ] ;
+ then
+dialog --infobox "Instalando o genkernel,Por favor aguarde" ;sleep 3
+emerge genkernel
+dialog --title "Compilacao" --infobox "Aguarde enquanto o genkernel compila o Kernel para Voce" 10 35 ;sleep 3
+genkernel all
+fi
+drivers=$(dialog --yesno "Voce quer instalar firmware adicionais(drivers)?" 10 35 --sdout)
+if [ $drivers = 0 ] ;
+ then
+emerge linux-firmware
+fi
+EOF
+log=$(dialog --yesno "Instalar um sistema de log?" 10 35 --stdout)
+if [ $log = 0 ];
+	then
+$_CHROOT emerge sysklogd
+fi
+
+grub=$(dialog --yesno "Instalar o carregador de inicializacao grub?" 10 35 --stdout)
+if [ $grub = 0 ] ;
+	then
+$_CHROOT emerge sys-boot/grub:2
+$_CHROOT grub-install $hd > /dev/null
+$_CHROOT grub-mkconfig -o /boot/grub/grub.cfg > /dev/null
+fi
+$_CHROOT rc-update add numlock default > /dev/null
+$_CHROOT /etc/init.d/numlock start > /dev/null
+cat > /mnt/gentoo/etc/conf.d/keymaps << EOF
+keymap="$keymap"
+windowkeys="YES"
+dumpkeys_charset=""
+fix_euro="NO"
+EOF
+cat > /mnt/gentoo/etc/conf.d/hwclock << EOF
+clock="local"
+clock_args=""
+EOF
+cd /
+umount -l /mnt/gentoo/dev{/shm,/pts,} > /dev/null
+umount /mnt/gentoo{/boot,/sys,/proc,} > /dev/null
+dialog --title "Instalacao terminada" \
+ --msgbox "A instalacao terminou!O sistema sera reiniciado apos tecla enter nesta mensagem,remova a midia de instalacao apos a reinicializacao." 15 40
+ reboot
