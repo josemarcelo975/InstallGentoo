@@ -212,29 +212,27 @@ EOF
 password=$(dialog --title "Senha" \
  --passwordbox "Digite a senha do usuario ROOT,Voce nao pode ver a senha" 15 45 --stdout)
 $_CHROOT usermod -p $(openssl passwd -1 $password) root
-$_CHROOT /bin/bash << EOF
 kernel=$(dialog --no-cancel --title "compilacao do Kernel" --menu "Escolha o tipo de compilacao do Kernel" 20 45 15 \
 menuconfig "Apenas para usuario avancado" \
 genkernel "Para iniciantes,Incompativel com a arquitetura x86(32bits)" --stdout)
 if [ $kernel = menuconfig ] ;
  then
 dialog --title "Compilacao" --infobox "Compilando os modulos,isso pode levar muito tempo" 10 35 ;sleep 3
-make menuconfig
-make && make modules_install
-make install
+$_CHROOT make menuconfig
+$_CHROOT make && $_CHROOT make modules_install
+$_CHROOT make install
 elif [ $kernel = genkernel ] ;
  then
 dialog --infobox "Instalando o genkernel,Por favor aguarde" ;sleep 3
-emerge genkernel
+$_CHROOT emerge genkernel
 dialog --title "Compilacao" --infobox "Aguarde enquanto o genkernel compila o Kernel para Voce" 10 35 ;sleep 3
-genkernel all
+$_CHOOT genkernel all
 fi
 drivers=$(dialog --yesno "Voce quer instalar firmware adicionais(drivers)?" 10 35 --sdout)
 if [ $drivers = 0 ] ;
  then
-emerge linux-firmware
+$_CHROOT emerge linux-firmware
 fi
-EOF
 log=$(dialog --yesno "Instalar um sistema de log?" 10 35 --stdout)
 if [ $log = 0 ];
 	then
