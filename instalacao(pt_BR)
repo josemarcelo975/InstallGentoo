@@ -185,6 +185,7 @@ echo "$zone/$subzone" > /mnt/gentoo/etc/timezone
 cat > /mnt/gentoo/etc/locale.gen << EOF
 pt_BR.UTF-8 UTF-8
 EOF
+$_CHROOT locale-gen > /dev/null
 
 EOF
 cat > /mnt/gentoo/etc/fstab << EOF
@@ -212,18 +213,22 @@ EOF
 password=$(dialog --title "Senha" \
  --passwordbox "Digite a senha do usuario ROOT,Voce nao pode ver a senha" 15 45 --stdout)
 $_CHROOT usermod -p $(openssl passwd -1 $password) root
+dialog --title "Kernel Linux" --infobox "Baixando os fontes do Kernel,Por favor aguarde" 10 40 ;sleep 3
+$_CHROOT emerge gentoo-sources
 kernel=$(dialog --no-cancel --title "compilacao do Kernel" --menu "Escolha o tipo de compilacao do Kernel" 20 45 15 \
 menuconfig "Apenas para usuario avancado" \
 genkernel "Para iniciantes,Incompativel com a arquitetura x86(32bits)" --stdout)
 if [ $kernel = menuconfig ] ;
  then
 dialog --title "Compilacao" --infobox "Compilando os modulos,isso pode levar muito tempo" 10 35 ;sleep 3
+cd /usr/src/linux
 $_CHROOT make menuconfig
 $_CHROOT make && $_CHROOT make modules_install
 $_CHROOT make install
 elif [ $kernel = genkernel ] ;
  then
 dialog --infobox "Instalando o genkernel,Por favor aguarde" ;sleep 3
+cd /usr/src/linux
 $_CHROOT emerge genkernel
 dialog --title "Compilacao" --infobox "Aguarde enquanto o genkernel compila o Kernel para Voce" 10 35 ;sleep 3
 $_CHOOT genkernel all
@@ -233,18 +238,20 @@ if [ $drivers = 0 ] ;
  then
 $_CHROOT emerge linux-firmware
 fi
-log=$(dialog --yesno "Instalar um sistema de log?" 10 35 --stdout)
-if [ $log = 0 ];
+dialog --yesno "Instalar um sistema de log?" 10 35
+if [ $? = 0 ];
 	then
 $_CHROOT emerge sysklogd
+else dialog --title "Continuando" --infobox "Ok,nao sera instalado." 10 35 ;sleep 2
 fi
 
-grub=$(dialog --yesno "Instalar o carregador de inicializacao grub?" 10 35 --stdout)
-if [ $grub = 0 ] ;
+dialog --yesno "Instalar o carregador de inicializacao grub?" 10 35
+if [ $? = 0 ] ;
 	then
 $_CHROOT emerge sys-boot/grub:2
 $_CHROOT grub-install $hd > /dev/null
 $_CHROOT grub-mkconfig -o /boot/grub/grub.cfg > /dev/null
+else dialog --title "OK" --infobox "O grub nao sera instalado." 10 35 ;sleep 3
 fi
 $_CHROOT rc-update add numlock default > /dev/null
 $_CHROOT /etc/init.d/numlock start > /dev/null
