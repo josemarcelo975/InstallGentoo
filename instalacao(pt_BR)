@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "--------------------------------------------------Gentoo Facil------------------------------------------------------------------------------"
-echo "-------------------------------Porfavor tenha paciencia e desative o UEFI na bios-----------------------------------------------------------" ;sleep 3
+echo "--------------------------------------------------Gentoo Facil-------------------------------------------------------------------------"
+echo "-------------------------------Porfavor tenha paciencia e desative o UEFI na bios------------------------------------------------------" ;sleep 3
 #Criado por josemarcelo: contato:josemarcelo975@gmail.com {Brasil}
 #Script criado apenas para a arquitetura amd64(64bits)
 dialog \
