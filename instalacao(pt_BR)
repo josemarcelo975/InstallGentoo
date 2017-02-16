@@ -210,11 +210,15 @@ ln -s net.lo net.$ETH0
 rc-update add net.$ETH0 default
 EOF
 password=$(dialog --title "Senha" \
+ --insecure \
  --passwordbox "Digite a senha do usuario ROOT,Voce nao pode ver a senha" 15 45 --stdout)
-$_CHROOT usermod -p $(openssl passwd -1 $password) root
+$_CHROOT passwd root << EOF
+$password
+$password
+EOF
 dialog --title "Kernel Linux" --infobox "Baixando os fontes do Kernel,Por favor aguarde" 10 40 ;sleep 3
 $_CHROOT emerge gentoo-sources
-kernel=$(dialog --no-cancel --title "compilacao do Kernel" --menu "Escolha o tipo de compilacao do Kernel" 20 45 15 \
+kernel=$(dialog --no-cancel --title "compilacao do Kernel" --menu "Escolha o tipo de compilacao do Kernel" 0 0 0 \
 menuconfig "Apenas para usuario avancado" \
 genkernel "Para iniciantes,Incompativel com a arquitetura x86(32bits)" --stdout)
 if [ $kernel = menuconfig ] ;
