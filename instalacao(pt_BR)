@@ -216,38 +216,13 @@ $_CHROOT passwd root << EOF
 $password
 $password
 EOF
-dialog --title "Kernel Linux" --infobox "Baixando os fontes do Kernel,Por favor aguarde" 10 40 ;sleep 3
-$_CHROOT emerge gentoo-sources
-kernel=$(dialog --no-cancel --title "compilacao do Kernel" --menu "Escolha o tipo de compilacao do Kernel" 0 0 0 \
-menuconfig "Apenas para usuario avancado" \
-genkernel "Para iniciantes,Incompativel com a arquitetura x86(32bits)" --stdout)
-if [ $kernel = menuconfig ] ;
- then
-dialog --title "Compilacao" --infobox "Compilando os modulos,isso pode levar muito tempo" 10 35 ;sleep 3
+dialog --title "Kernel Linux" --infobox "Baixando os pacotes necessario,Por favor aguarde" 10 40 ;sleep 3
+$_CHROOT emerge gentoo-sources genkernel
 cd /usr/src/linux
-$_CHROOT make menuconfig
-$_CHROOT make && $_CHROOT make modules_install
-$_CHROOT make install
-elif [ $kernel = genkernel ] ;
- then
-dialog --infobox "Instalando o genkernel,Por favor aguarde" ;sleep 3
-cd /usr/src/linux
-$_CHROOT emerge genkernel
 dialog --title "Compilacao" --infobox "Aguarde enquanto o genkernel compila o Kernel para Voce" 10 35 ;sleep 3
 $_CHOOT genkernel all
-fi
-dialog --yesno "Voce quer instalar firmware adicionais(drivers)?" 10 35
-if [ $? = 0 ] ;
- then
-$_CHROOT emerge linux-firmware
-fi
-dialog --yesno "Instalar um sistema de log?" 10 35
-if [ $? = 0 ];
-	then
+dialog --infobox "Instalando um sistema de log" 10 35 ;sleep 3
 $_CHROOT emerge sysklogd
-else dialog --title "Continuando" --infobox "Ok,nao sera instalado." 10 35 ;sleep 2
-fi
-
 dialog --yesno "Instalar o carregador de inicializacao grub?" 10 35
 if [ $? = 0 ] ;
 	then
