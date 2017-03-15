@@ -220,7 +220,7 @@ dialog --title "Kernel Linux" --infobox "Baixando os pacotes necessario,Por favo
 $_CHROOT emerge gentoo-sources genkernel
 cd /usr/src/linux
 dialog --title "Compilacao" --infobox "Aguarde enquanto o genkernel compila o Kernel para Voce" 10 35 ;sleep 3
-$_CHOOT genkernel all
+$_CHROOT genkernel all
 dialog --infobox "Instalando um sistema de log" 10 35 ;sleep 3
 $_CHROOT emerge sysklogd
 dialog --yesno "Instalar o carregador de inicializacao grub?" 10 35
